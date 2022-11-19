@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Firstpenguin Login</title>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- JS -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
+
+        <!-- CSS -->
+        <link
+            rel='stylesheet'
+            href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css'>
+
+        <link
+            rel='stylesheet'
+            href='https://unicons.iconscout.com/release/v2.1.9/css/unicons.css'><link rel="stylesheet" href="static/css/style_login.css">
+
+        <!-- Favicon-->
+        <link rel="icon" type="image/x-icon" href="static/assets/favicon.png"/>
+
+        <script>
+            $(document).ready(function () {
+                $('#for_loginuser').hide();
+                $('#for_notloginuser').hide();
+                check_login();
+                CallGetUserInfoAPI();
+            })
+
+            function logout() {
+                $.removeCookie('mytoken', {path: '/'});
+                window.location.href = '/user'
+            }
+            //아이디,비밀번호 정규표현식
+            function is_id(asValue) {
+                var regExp = /^[a-zA-Z0-9]{4,10}$/;
+                return regExp.test(asValue);
+            }
+
+            function is_pw(asValue) {
+                var regExp = /^[a-zA-Z0-9]{8,20}$/;
+                return regExp.test(asValue);
+            }
+
+            //아이디 유효성 검사 및 중복검사
+            function check_dup() {
+                let username = $("#input-username").val()
+                console.log(username)
+                if (username == "") {
+                    $("#help-id")
+                        .text("아이디를 입력해주세요.")
+                        .removeClass("is-safe")
+                        .addClass("is-danger")
+                    $("#input-username").focus()
+                    return;
+                }
+                if (!is_id(username)) {
+                    $("#help-id")
+                        .text("아이디의 형식을 확인해주세요. 영문과 숫자 사용 가능. 4-10자 길이")
+                        .removeClass("is-safe")
+                        .addClass("is-danger")
+                    $("#input-username").focus()
+                    return;
+                }
+                $("#help-id").addClass("is-loading")
+                $.ajax({
+                    type: "POST",
+                    url: "/sign_up/check_dup",
+                    data: {
+                        username_give: username
+                    },
+                    success: function (response) {
+
+                        if (response["exists"]) {
+                            $("#help-id")
+                                .text("이미 존재하는 아이디입니다.")
+                                .removeClass("is-safe")
+                                .addClass("is-danger")
+                            $("#input-username").focus()
+                        } else {
+                            $("#help-id")
+                                .text("사용할 수 있는 아이디입니다.")
+                                .removeClass("is-danger")
+                                .addClass("is-success")
+                        }
+                        $("#help-id").removeClass("is-loading")
+
+                    }
+                });
+            }
+            //아이디 및 비밀번호 유효성 검사
+            function sign_up() {
+                let id = $("#input-username").val()
+                let pw = $("#input-pw").val()
+                let repw = $("#input-repw").val()
+                console.log(id, pw, repw)
+
+                if ($("#help-id").hasClass("is-danger")) {
+                    alert("아이디를 다시 확인해주세요.")
+                    return;
+                } else if (!$("#help-id").hasClass("is-success")) {
+                    alert("아이디 중복확인을 해주세요.")
+                    return;
+                }
+
+                if (pw == "") {
+                    $("#help-password")
+                        .text("비밀번호를 입력해주세요.")
+                        .removeClass("is-safe")
+                        .addClass("is-danger")
+                    $("#input-pw").focus()
+                    return;
+                } else if (!is_pw(pw)) {
+                    $("#help-password")
+                        .text("비밀번호의 형식을 확인해주세요. 영문과 숫자 사용가능 8-20자")
+                        .removeClass("is-safe")
+                        .addClass("is-danger")
+                    $("#input-pw").focus()
+                    return
+                } else {
+                    $("#help-password")
+                        .text("사용할 수 있는 비밀번호입니다.")
+                        .removeClass("is-danger")
+                        .addClass("is-success")
+                }
+                if (repw == "") {
+                    $("#help-password2")
+                        .text("비밀번호를 입력해주세요.")
+                        .removeClass("is-safe")
+                        .addClass("is-danger")
+                    $("#input-repw").focus()
+                    return;
+                } else if (repw != pw) {
+                    $("#help-password2")
+                        .text("비밀번호가 일치하지 않습니다.")
+                        .removeClass("is-safe")
+                        .addClass("is-danger")
+                    $("#input-repw").focus()
+                    return;
+                } else {
+                    $("#help-password2")
+                        .text("비밀번호가 일치합니다.")
+                        .removeClass("is-danger")
+                        .addClass("is-success")
+                }
+                $.ajax({
+                    type: "POST",
+                    url: "/sign_up/save",
+                    data: {
+                        id_give: id,
+                        pw_give: pw
+                    },
+                    success: function (response) {
+                        alert("회원가입을 축하드립니다!")
+                        window
+                            .location
+                            .replace("/user")
+                    }
+                });
+
+            }
+            //로그인 유효성 검사
+            function sign_in() {
+                let username = $("#input-id").val()
+                let password = $("#input-pw3").val()
+
+                if (username == "") {
+                    $("#help-id-login").text("아이디를 입력해주세요.")
+                    $("#input-username").focus()
+                    return;
+                } else {
+                    $("#help-id-login").text("")
+                }
+
+                if (password == "") {
+                    $("#help-password-login").text("비밀번호를 입력해주세요.")
+                    $("#input-password").focus()
+                    return;
+                } else {
+                    $("#help-password-login").text("")
+                }
+                $.ajax({
+                    type: "POST",
+                    url: "/sign_in",
+                    data: {
+                        username_give: username,
+                        password_give: password
+                    },
+                    success: function (response) {
+                        if (response['result'] == 'success') {
+                            $.cookie('mytoken', response['token'], {path: '/'});
+                            window
+                                .location
+                                .replace("/")
+                        } else {
+                            alert(response['msg'])
+                        }
+                    }
+                });
+            }
+
+            //로그아웃 , 토큰이 없으면 로그인이 필요
+            function sign_out() {
+                if ($.removeCookie('mytoken', {path: '/'}) == true) {
+                    alert('로그아웃이 되었습니다.')
+                    window.location.href = "/user"
+                } else {
+                    alert('로그인이 필요합니다.')
+                    window.location.href = "/user"
+                }
+            }
+        </script>
+    </head>
+
+    <body>
+        <!--Logo-->
+        <a href="/" class="logo" target="_blank">
+            <img src="static/assets/img/navbar-logo.png" alt="">
+        </a>
+        <button onclick="sign_out()" class="btn mt-4 logout">Logout</button>
+
+        <div class="section">
+            <div class="container">
+                <div class="row full-height justify-content-center">
+                    <div class="col-12 text-center align-self-center py-5">
+                        <div class="section pb-5 pt-5 pt-sm-2 text-center">
+                            <h6 class="mb-0 pb-3">
+                                <span>LogIn
+                                </span><span>SignUp</span>
+                            </h6>
+                            <input class="checkbox" type="checkbox" id="reg-log" name="reg-log"/>
+                            <label for="reg-log"></label>
+                            <div class="card-3d-wrap mx-auto">
+                                <div class="card-3d-wrapper">
+                                    <div class="card-front">
+                                        <div class="center-wrap">
+                                            <div class="section text-center">
+                                                <h4 class="mb-4 pb-3">LogIn</h4>
+                                                <div class="form-group">
+                                                    <input id="input-id" class="form-style" type="text" placeholder="Your ID">
+                                                    <p id="help-id-login" class="help is-danger"></p>
+                                                    <i class="input-icon uil uil-postcard"></i>
+                                                </div>
+                                                <div class="form-group mt-2">
+                                                    <input
+                                                        id="input-pw3"
+                                                        class="form-style"
+                                                        type="password"
+                                                        placeholder="Your Passwoad">
+                                                    <i class="input-icon uil uil-lock-alt"></i>
+                                                </div>
+                                                <button onclick="sign_in()" class="btn mt-4">Login</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-back">
+                                        <div class="center-wrap">
+                                            <div class="section text-center">
+                                                <h4 class="mb-4 pb-3">SignUp</h4>
+                                                <div class="form-group">
+                                                    <input
+                                                        id="input-username"
+                                                        class="form-style"
+                                                        type="text"
+                                                        placeholder="Your ID"
+                                                        maxlength="10">
+                                                    <i class="input-icon uil uil-postcard"></i>
+                                                </div>
+                                                <p id="help-id" class="help">
+                                                    4-10자 영문, 숫자로 확인을 위해 아이콘을 눌러주세요.</p>
+                                                <div class="form-group mt-2">
+                                                    <input
+                                                        id="input-pw"
+                                                        class="form-style"
+                                                        type="password"
+                                                        placeholder="Your Password"
+                                                        maxlength="20">
+                                                    <i class="input-icon uil uil-lock-alt"></i>
+                                                </div>
+                                                <p id="help-password" class="help">영문과 숫자 조합의 8-20자의 비밀번호를 설정해주세요.</p>
+                                                <div class="form-group mt-2">
+                                                    <input
+                                                        id="input-repw"
+                                                        class="form-style"
+                                                        type="password"
+                                                        placeholder="Password Check"
+                                                        maxlength="20">
+                                                    <i class="input-icon uil uil-lock-alt"></i>
+                                                </div>
+                                                <p id="help-password2" class="help">비밀번호를 다시 한 번 입력해주세요.</p>
+                                                <button class="btn mt-4" onclick="sign_up()">SignUp</button>
+                                                <button class="btn mt-4" onclick="check_dup()">IDCheck</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/>
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+        <meta name="description" content=""/>
+        <meta name="author" content=""/>
+        <title>First penguin 박준석</title>
+
+        <!-- Favicon-->
+        <link rel="icon" type="image/x-icon" href="static/assets/favicon.png"/>
+
+        <!-- Font Awesome icons (free version)-->
+        <script
+            src="https://use.fontawesome.com/releases/v6.1.0/js/all.js"
+            crossorigin="anonymous"></script>
+
+        <!-- JS -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
+
+        <!-- Google fonts-->
+        <link
+            href="https://fonts.googleapis.com/css?family=Montserrat:400,700"
+            rel="stylesheet"
+            type="text/css"/>
+        <link
+            href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700"
+            rel="stylesheet"
+            type="text/css"/>
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="static/css/styles.css" rel="stylesheet"/>
+        <script>
+
+            $(document).ready(function () {
+                parkcommentread();
+                user_read();
+            });
+
+            // comment 박스 열고 닫는 기능
+            function openclose() {
+                // id 값 post-box의 display 값이 block 이면
+                if ($('#post-box').css('display') == 'block') {
+                    // post-box를 가리고
+                    $('#post-box').hide();
+                } else {
+                    // 아니면 post-box를 펴라
+                    $('#post-box').show();
+                }
+            }
+
+            function parkcommentwrite() {
+                let comment = $('#comment2').val()
+                let name = $('#name2').val()
+                $.ajax({
+                    type: "POST",
+                    url: "/park",
+                    data: {
+                        comment_give: comment,
+                        name_give: name
+                    },
+                    success: function (response) {
+                        if (response["result"] == "success") {
+                            alert(response["msg"]);
+                            window
+                                .location
+                                .reload()
+
+                        }
+                    }
+                })
+            }
+
+            function parkcommentread() {
+                // 서버의 데이터를 받아오기
+                $.ajax({
+                    type: "GET",
+                    url: "/park",
+                    data: {},
+                    success: function (response) {
+                        let comments = response['all_comment']
+                        for (let i = 0; i < comments.length; i++) {
+                            let comment = comments[i]['comment']
+                            let name = comments[i]['name']
+
+                            let temp_html = `<div class="card">
+                                <div class="card-body"">
+                                    <blockquote class="blockquote mb-0 ">
+                                        <p>${comment}</p>
+                                        <footer class="blockquote-footer">${name}</footer>
+                                    </blockquote>
+                                </div>
+                            </div>`
+                            $('#comment-box2').append(temp_html)
+                        }
+                    }
+                })
+            }
+            function user_read() {
+                $.ajax({
+                    type: "GET",
+                    url: "/user2/read",
+                    data: {},
+                    success: function (response) {
+                        let reads = response['all_reads']
+
+                        let name = reads[1]['name']
+                        let introduction = reads[1]['introduction']
+                        let mbti = reads[1]['mbti']
+                        let blog = reads[1]['blog']
+                        let image = reads[1]['image']
+                        
+
+                        let temp_html = ` <div class="modal-body">
+                            <!-- Project details-->
+                            <h2 class="text-uppercase">${name}</h2>
+                            <img
+                                class="img-fluid d-block mx-auto"
+                                src="${image}"
+                                alt="..."/>
+                            <p>${introduction}</p>
+                            <ul class="list-inline">
+                                <li>
+                                    <strong>MBTI:</strong>
+                                    ${mbti}
+                                </li>
+                                <li>
+                                    <p></p>
+                                    <strong>Blog:</strong>
+                                    <a href="${blog}">${blog}
+                                    </a>
+                                </div>`
+
+                        $('#read-box').append(temp_html)
+                    }
+                })
+            }
+        </script>
+        <body>
+            <!-- Navigation-->
+            <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
+                <div class="container">
+                    <a class="navbar-brand" href="/"><img src="static/assets/img/navbar-logo.png" alt="..."/></a>
+                    <button
+                        class="navbar-toggler"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#navbarResponsive"
+                        aria-controls="navbarResponsive"
+                        aria-expanded="false"
+                        aria-label="Toggle navigation">
+                        Menu
+                        <i class="fas fa-bars ms-1"></i>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarResponsive">
+                        <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
+                            <li class="nav-item">
+                                <a class="nav-link" href="/user">Login</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/form_edit">Edit</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+            <!--user park-->
+            <div class="portfolio-modal " id="portfolioModal2">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="container">
+                            <div class="row justify-content-center">
+                                <div class="col-lg-8">
+                                    <div id="read-box"></div>
+                                            <br></br>
+                                            <button
+                                                class="btn btn-primary btn-xl text-uppercase"
+                                                type="button"
+                                                onclick="openclose()">
+                                                <i class="fa-solid fa-plus"></i>
+                                                Comment
+                                            </button>
+                                        </ul>
+                                        <br></br>
+                                        <div id="post-box">
+                                            <div class="input-group mb-3">
+                                                <input id="name2" type="text" class="form-control" placeholder="name">
+                                                <input
+                                                    id="comment2"
+                                                    type="text"
+                                                    class="form-control"
+                                                    placeholder="comment"
+                                                    aria-label="Comment"
+                                                    aria-describedby="button-addon1">
+                                                <div class="input-group-prepend">
+                                                    <button
+                                                        onclick="parkcommentwrite()"
+                                                        class="btn btn-warning"
+                                                        type="button"
+                                                        id="button-addon2">Enroll
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div id="comment-box2"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+             <div class="footer_py">
+        <footer class="py-5 bg-dark">
+            <div class="container">
+                <p class="m-0 text-center text-white">First Penguin Website 2022</p>
+            </div>
+        </footer>
+    </div>
+        </div>
+        <!-- Bootstrap core JS-->
+        <script
+            src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="static/js/scripts.js"></script>
+
+
+    </body>
+</html>
